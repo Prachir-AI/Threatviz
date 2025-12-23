@@ -9,6 +9,11 @@ import uuid
 import logging
 import warnings
 import requests
+os.environ['USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+os.environ['REQUESTS_CA_BUNDLE'] = ''
+
+warnings.filterwarnings('ignore')
+logging.disable(logging.CRITICAL)
 
 from colorama import Fore, Style, init
 init(autoreset=True)
@@ -32,12 +37,6 @@ from helper import (
 
 _ = load_dotenv()
 
-warnings.filterwarnings("ignore")
-logging.disable(logging.CRITICAL)
-
-# =========================
-# Argument Parsing
-# =========================
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-id", help="CVE ID to analyze")
@@ -126,11 +125,12 @@ def fetch_cve(state: CVEState):
     }
 
     response = requests.get(url, headers=headers, timeout=10)
-    response.raise_for_status()
-    state["raw_cve_data"] = response.json()
-    print(f"{Fore.GREEN}[+] CVE data fetched successfully{Style.RESET_ALL}")
-    return state
-
+    if response.status_code == 200:
+        state["raw_cve_data"] = response.json()
+        print(f"{Fore.GREEN}[+] CVE data fetched successfully{Style.RESET_ALL}")
+        return state
+    else:
+        return None
 
 def analyze_cve_with_rag(state: CVEState) -> CVEState:
     print(f"{Fore.CYAN}[*] Analyzing CVE with PASTA/STRIDE framework...{Style.RESET_ALL}")
@@ -475,6 +475,9 @@ if hasattr(args, "dashboard_inner") or "-dashboard_inner" in sys.argv:
         except Exception as e:
             st.error(f"❌ Error rendering report: {e}")
 
+#----------------
+#agentcore
+#------------------
 @agentcore_app.entrypoint
 def agentcore_handler(payload, context):
     """
@@ -505,7 +508,38 @@ def agentcore_handler(payload, context):
         "report": result["final_report"]
     }
 
+def save_security_report(result, cve_id, html_report=True, json_report=True):
+    """
+    Saves security reports in HTML, JSON, or both.
+    Automatically handles invalid JSON in result['final_report'].
+    """
+    report_data = result.get('final_report', "")
 
+    report_dict = None
+    if isinstance(report_data, str):
+        try:
+            report_dict = json.loads(report_data)
+        except json.JSONDecodeError:
+            report_dict = {
+                "TITLE": "Security Report",
+                "EXECUTIVE_SUMMARY": [report_data],
+                "DETAILED_ANALYSIS": [],
+                "RISK_ASSESSMENT": "",
+                "THREAT_MODEL": "",
+                "MITIGATION": ""
+            }
+    elif isinstance(report_data, dict):
+        report_dict = report_data
+    else:
+        report_dict = {
+            "TITLE": "Security Report",
+            "EXECUTIVE_SUMMARY": [str(report_data)],
+            "DETAILED_ANALYSIS": [],
+            "RISK_ASSESSMENT": "",
+            "THREAT_MODEL": "",
+            "MITIGATION": ""
+        }
+    return report_dict
 if __name__ == "__main__":
     if args.deploy:
         deploy_to_bedrock()
@@ -517,16 +551,13 @@ if __name__ == "__main__":
         script_path = os.path.abspath(__file__)
         print(Fore.CYAN + "[*] Launching Streamlit Dashboard..." + Style.RESET_ALL)
         subprocess.run([sys.executable, "-m", "streamlit", "run", script_path, "--", "-dashboard_inner"])
-    
-    # Case 2: User is running via CLI (dashboard_inner is NOT set)
-    elif not hasattr(args, 'dashboard_inner') and '-dashboard_inner' not in sys.argv:
+
+    elif not args.dashboard and not args.dashboard_inner:
         if args.id:
             print(f"{Fore.YELLOW}{'='*50}")
             print(f"{Fore.YELLOW}  Threatviz CLI Mode: {args.id}")
             print(f"{Fore.YELLOW}{'='*50}{Style.RESET_ALL}\n")
-            
             output = run(args.id)
-
             if args.html_report:
                 html = render_security_report_html(json.loads(output))
                 with open(f"{args.id}.html", "w", encoding="utf-8") as f:
@@ -541,6 +572,5 @@ if __name__ == "__main__":
             if not args.html_report and not args.json_report:
                 print(json.loads(output))
         else:
-            # Only show this if they didn't provide an ID and didn't ask for dashboard
             print(Fore.RED + "❌ Error: Please provide a CVE ID (-id) or use the dashboard (-dashboard) flag." + Style.RESET_ALL)
             parser.print_help()
