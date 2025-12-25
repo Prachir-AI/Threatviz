@@ -3,7 +3,7 @@
 * Agentic AI based Threat Modeling Technique
 * Supports  STRIDE
 * Supports PASTA
-#### Just put any CVE id in the search box it will turn that to full end to end threat modeling  diagram.
+### Just Insert any CVE then it will turn that to full end to end threat modeling workflow.
 
 
 ---
@@ -11,28 +11,44 @@
 ![alt text](asset/image.png)
 ----
 ![alt text](asset/tm2.png)
+----
+![alt text](asset/tm3.png)
+----
+![alt text](asset/tm4.png)
 
 ----
 
-### AI Tech Stack
+### Tech Stack
 
 - Langgraph for multi-agent orchestration
 - Faiss for the knowledge base and  RAG
 - Groq, OpenAI, Claude and Gemini for model endpoint
 - Huggingface for embedding
 - Streamlit for Web Interface
+---
 
+### Below AI Models are spported
+| Model           | Status | 
+| :---------------- | :------: |
+| qwen/qwen3-32b      |   ✔️   |
+| meta-llama/llama-4-maverick-17b-128e-instruct          |   ✔️   |
+| openai/gpt-oss-120b   |  ✔️   | 
+| openai/gpt-oss-20b |  ✔️   |
+| openai/gpt-4o-mini |  ✔️   |
+| moonshotai/kimi-k2-instruct-0905|  ✔️   |
+
+---
 ### Deployment
 - Local Deployment with light weight GUI.
 - Deployed and tested using Amazon Bedrock AgentCore and AgentCore memory services
 - AWS CloudWatch for observability
 
+---
 ### Usage
 ```
 git clone https://github.com/findthead/Threatviz.git
 cd Threatviz
 uv sync
-source .venv/bin/activate   
 uv run threatviz.py -id CVE-2025-55182 -html_report 
 ```
 
@@ -44,8 +60,6 @@ uv run threatviz.py -dashbord
 ![Web Interface](asset/web.png)
 ----
 ![Analysis](asset/web2.png)
-----
-`Note: Working Perfectly with moonshotai/kimi-k2-instruct-0905 from Groq`
 
 ---
 ### Cloudwatch Observability (optional)
@@ -60,7 +74,7 @@ uv run threatviz.py -dashbord
   author = {Subhay},
   title = {Threatviz: An autonomous multi-agent Threat Modeling Tool},
   url = {https://github.com/findthehead/Threatviz},
-  version = {0.0.2},
+  version = {0.0.3},
   year = {2025}
 }
 ```

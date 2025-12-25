@@ -3,8 +3,6 @@ import json
 import streamlit.components.v1 as components
 from report import render_security_report_html
 from sanitization import sanitize_cve_id
-from llm import load_llm
-from agent import agent
 
 def start():
     st.set_page_config(
@@ -36,11 +34,11 @@ def start():
             cve_input = sanitize_cve_id(cve_input_raw)
 
             with st.spinner(f"🔍 Analyzing {cve_input}..."):
-                app = agent(load_llm('groq'))
-                report_data = app.invoke({"cve_id":cve_input})
-            report_json = json.dumps(report_data["final_report"])
+                from threatviz import parse_args, main
+                _, args = parse_args()
+                rep = main(args.model, cve_input)
             action_col1, action_col2 = st.columns([1, 6])
-            final_report = report_data["final_report"]
+            final_report = rep
             if isinstance(final_report, str):
                 final_report = json.loads(final_report)
 

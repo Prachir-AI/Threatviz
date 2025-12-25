@@ -21,7 +21,8 @@ init(autoreset=True)
 
 def main(llm, cve):
     if not cve:
-        return json.dumps({"error": "No CVE ID provided"})
+        print(Fore.RED + "❌ No CVE ID provided" + Style.RESET_ALL)
+        return None
     llm = load_llm(llm)
     app = agent(llm)
     result = app.invoke({"cve_id": cve})
@@ -30,16 +31,22 @@ def main(llm, cve):
 
 
 
-if __name__ == "__main__":
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-id", help="CVE ID to analyze")
-    parser.add_argument("-model", choices=["groq", "openai", "claude", "gemini"], default="groq", help="LLM provider (default: groq)")
+    parser.add_argument("-model", choices=["groq", "openai", "claude", "mistral", "gemini"], default="groq", help="LLM provider (default: groq)")
     parser.add_argument("-html_report", action="store_true")
     parser.add_argument("-json_report", action="store_true")
     parser.add_argument("-dashboard", action="store_true", help="Launch web dashboard with CVE search")
     parser.add_argument("-dashboard_inner", action="store_true", help="Internal flag for launching dashboard")
     args = parser.parse_args()
-    if "-dashboard_inner" in sys.argv:
+    return parser, args
+
+
+
+if __name__ =='__main__':
+    _, args = parse_args()
+    if args.dashboard_inner:
         print(f"{Fore.YELLOW}{'='*50}")
         print(f"{Fore.YELLOW}  Threatviz Dashboard Mode Started")
         print(f"{Fore.YELLOW}{'='*50}{Style.RESET_ALL}\n")
@@ -70,4 +77,4 @@ if __name__ == "__main__":
                 print(json.loads(output))
         else:
             print(Fore.RED + "❌ Error: Please provide a CVE ID (-id) or use the dashboard (-dashboard) flag." + Style.RESET_ALL)
-            parser.print_help()
+            args.print_help()
