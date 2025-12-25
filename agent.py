@@ -4,6 +4,8 @@ from typing_extensions import TypedDict
 from sanitization import sanitize_llm
 from rag import retrieve_framework_context
 from colorama import Fore, Style, init
+import sys
+
 init(autoreset=True)
 
 def agent(llm):
@@ -42,7 +44,8 @@ def agent(llm):
             print(f"{Fore.GREEN}[+] CVE data fetched successfully{Style.RESET_ALL}")
             return state
         else:
-            return None
+            raise ValueError(F'{Fore.RED}[X] The cve record for the cve id does not exist.')
+            
 
     def analyze_cve_with_rag(state: CVEState) -> CVEState:
         print(f"{Fore.CYAN}[*] Analyzing CVE with PASTA/STRIDE framework...{Style.RESET_ALL}")

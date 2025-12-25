@@ -15,6 +15,7 @@
 ![alt text](asset/tm3.png)
 ----
 ![alt text](asset/tm4.png)
+![alt text](asset/tm5.png)
 
 ----
 
@@ -23,7 +24,7 @@
 - `Langgraph` for multi-agent orchestration
 - `Faiss` for the knowledge base and  RAG
 - `Groq` and `OpenAI` for model endpoint
-- `Huggingface` for embedding
+- `Huggingface` for embeddings
 - `Streamlit` for Web Interface
 ---
 

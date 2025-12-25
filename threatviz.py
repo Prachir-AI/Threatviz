@@ -21,14 +21,11 @@ init(autoreset=True)
 
 def main(llm, cve):
     if not cve:
-        print(Fore.RED + "❌ No CVE ID provided" + Style.RESET_ALL)
-        return None
+        return json.dumps({"error": "No CVE ID provided"})
     llm = load_llm(llm)
     app = agent(llm)
     result = app.invoke({"cve_id": cve})
     return result["final_report"]
-
-
 
 
 def parse_args():
@@ -42,11 +39,9 @@ def parse_args():
     args = parser.parse_args()
     return parser, args
 
-
-
-if __name__ =='__main__':
-    _, args = parse_args()
-    if args.dashboard_inner:
+if __name__ == "__main__":
+    parser, args = parse_args()
+    if "-dashboard_inner" in sys.argv:
         print(f"{Fore.YELLOW}{'='*50}")
         print(f"{Fore.YELLOW}  Threatviz Dashboard Mode Started")
         print(f"{Fore.YELLOW}{'='*50}{Style.RESET_ALL}\n")
@@ -67,14 +62,16 @@ if __name__ =='__main__':
                 with open(f"{args.id}.html", "w", encoding="utf-8") as f:
                     f.write(html)
                 print(Fore.GREEN + f"[+] HTML Report: {args.id}.html" + Style.RESET_ALL)
-
             if args.json_report:
                 with open(f"{args.id}.json", "w", encoding="utf-8") as f:
                     f.write(output)
                 print(Fore.GREEN + f"[+] JSON Report: {args.id}.json" + Style.RESET_ALL)
-
             if not args.html_report and not args.json_report:
                 print(json.loads(output))
+                print(f"{Fore.YELLOW}{'='*50}{Style.RESET_ALL}\n")
+                print(f"{Fore.RED}  No Report Format Selcted hence Raw JSON printed in the terminal for {args.id}")
+                print(f"{Fore.GREEN}  Please Select -html_report or -json_report or use the dashboard (-dashboard) flag only")
+        
         else:
             print(Fore.RED + "❌ Error: Please provide a CVE ID (-id) or use the dashboard (-dashboard) flag." + Style.RESET_ALL)
-            args.print_help()
+            parser.print_help()
